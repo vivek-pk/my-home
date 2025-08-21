@@ -1,288 +1,176 @@
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CalendarDays, Users, FileText, Edit, ArrowLeft } from "lucide-react"
-import AdminLayout from "@/components/admin/admin-layout"
-import TimelineView from "@/components/timeline/timeline-view"
-import { getProjectById } from "@/lib/db/projects"
-import { getAllUsers } from "@/lib/db/users"
+import AdminLayout from '@/components/admin/admin-layout';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import Image from 'next/image';
+import { getProjectById } from '@/lib/db/projects';
+import { notFound } from 'next/navigation';
+import {
+  Building2,
+  Calendar,
+  Users,
+  FileText,
+  ImageIcon,
+  Pencil,
+} from 'lucide-react';
+import { TimelineView } from '@/components/timeline/timeline-view';
 
-export default async function AdminProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params
-  const { id } = resolvedParams
-  const project = await getProjectById(id)
+export default async function AdminProjectDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const project = await getProjectById(id);
 
   if (!project) {
-    notFound()
+    notFound();
   }
 
-  const allUsers = await getAllUsers()
-  const teamMembers = allUsers.filter(
-    (user) => project.engineerIds.includes(user._id) || project.managerIds.includes(user._id),
-  )
-  const engineers = allUsers.filter((user) => project.engineerIds.includes(user._id))
-  const managers = allUsers.filter((user) => project.managerIds.includes(user._id))
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Planning":
-        return "bg-blue-100 text-blue-800"
-      case "In Progress":
-        return "bg-yellow-100 text-yellow-800"
-      case "Completed":
-        return "bg-green-100 text-green-800"
-      case "On Hold":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
+  const teamCount =
+    (project.engineerIds?.length || 0) + (project.managerIds?.length || 0);
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/projects">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Projects
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-              <p className="text-gray-600">{project.address}</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold">{project.name}</h1>
+            <p className="text-muted-foreground">{project.description}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
+            <Badge variant="outline" className="capitalize">
+              {project.status.replace('-', ' ')}
+            </Badge>
             <Link href={`/admin/projects/${project._id}/edit`}>
-              <Button>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Project
+              <Button size="sm" variant="outline">
+                <Pencil className="h-4 w-4 mr-2" /> Edit
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Project Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Overview */}
+        <div className="grid gap-6 md:grid-cols-3">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Project Value</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Building2 className="h-4 w-4" /> Project Summary
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${project.budget?.toLocaleString() || "N/A"}</div>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Users className="h-4 w-4" /> Team members: {teamCount}
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="h-4 w-4" /> Phases:{' '}
+                {project.timeline?.length || 0}
+              </div>
+              {project.startDate && project.endDate && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  {new Date(project.startDate).toLocaleDateString()} –{' '}
+                  {new Date(project.endDate).toLocaleDateString()}
+                </div>
+              )}
+              {project.budget != null && (
+                <div className="text-muted-foreground">
+                  Budget: ${project.budget.toLocaleString()}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Duration</CardTitle>
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base">Project Files</CardTitle>
+              <CardDescription>Floor plans and images</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {project.startDate && project.endDate
-                  ? Math.ceil(
-                      (new Date(project.endDate).getTime() - new Date(project.startDate).getTime()) /
-                        (1000 * 60 * 60 * 24),
-                    )
-                  : "N/A"}{" "}
-                days
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Floor Plans</span>
+                </div>
+                <div className="space-y-2">
+                  {project.floorPlans?.length ? (
+                    project.floorPlans.map((f, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-2 border rounded text-sm"
+                      >
+                        <span className="truncate mr-2">{f.originalName}</span>
+                        <Link href={f.url} target="_blank">
+                          <Button variant="outline" size="sm">
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      No floor plans
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <ImageIcon className="h-4 w-4 text-secondary" />
+                  <span className="text-sm font-medium">Images</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {project.images?.length ? (
+                    project.images.map((img, i) => (
+                      <Link
+                        key={i}
+                        href={img.url}
+                        target="_blank"
+                        className="block"
+                      >
+                        <div className="relative w-full h-20 rounded border overflow-hidden">
+                          <Image
+                            src={img.url}
+                            alt={img.originalName}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            priority={false}
+                            unoptimized
+                          />
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      No images
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{project.engineerIds.length + project.managerIds.length}</div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Project Details Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="files">Files</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700">{project.description || "No description provided."}</p>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Project Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Start Date:</span>
-                    <span>{project.startDate ? new Date(project.startDate).toLocaleDateString() : "Not set"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">End Date:</span>
-                    <span>{project.endDate ? new Date(project.endDate).toLocaleDateString() : "Not set"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Budget:</span>
-                    <span>${project.budget?.toLocaleString() || "Not set"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Status:</span>
-                    <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Homeowner Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Name:</span>
-                    <span>{project.homeownerName || "Not provided"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Phone:</span>
-                    <span>{project.homeownerPhone || "Not provided"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Email:</span>
-                    <span>{project.homeownerEmail || "Not provided"}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="timeline">
+        {/* Timeline */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Timeline</CardTitle>
+            <CardDescription>Phases, materials and updates</CardDescription>
+          </CardHeader>
+          <CardContent>
             <TimelineView project={project} canEdit={false} />
-          </TabsContent>
-
-          <TabsContent value="team">
-            <div className="space-y-4">
-              {engineers.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Engineers</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {engineers.map((engineer) => (
-                        <div key={engineer._id} className="flex items-center justify-between p-2 border rounded">
-                          <div>
-                            <span className="font-medium">{engineer.name}</span>
-                            <p className="text-sm text-gray-500">{engineer.mobile}</p>
-                          </div>
-                          <Badge variant="outline">Engineer</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {managers.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Managers</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {managers.map((manager) => (
-                        <div key={manager._id} className="flex items-center justify-between p-2 border rounded">
-                          <div>
-                            <span className="font-medium">{manager.name}</span>
-                            <p className="text-sm text-gray-500">{manager.mobile}</p>
-                          </div>
-                          <Badge variant="outline">Manager</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {teamMembers.length === 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Assigned Team Members</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-500">No team members assigned yet.</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="files">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Files</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {project.floorPlan && (
-                    <div>
-                      <h4 className="font-medium mb-2">Floor Plan</h4>
-                      <a
-                        href={project.floorPlan}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        View Floor Plan
-                      </a>
-                    </div>
-                  )}
-
-                  {project.images && project.images.length > 0 && (
-                    <div>
-                      <h4 className="font-medium mb-2">Project Images</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {project.images.map((image: string, index: number) => (
-                          <img
-                            key={index}
-                            src={image || "/placeholder.svg"}
-                            alt={`Project image ${index + 1}`}
-                            className="w-full h-24 object-cover rounded border"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {!project.floorPlan && (!project.images || project.images.length === 0) && (
-                    <p className="text-gray-500">No files uploaded yet.</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
-  )
+  );
 }

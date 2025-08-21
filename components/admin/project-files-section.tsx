@@ -1,17 +1,24 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { FileUpload, type UploadedFile } from "@/components/upload/file-upload"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileText, ImageIcon, Plus } from "lucide-react"
+import { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FileUpload, type UploadedFile } from '@/components/upload/file-upload';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileText, ImageIcon, Plus } from 'lucide-react';
+import Image from 'next/image';
 
 interface ProjectFilesSectionProps {
-  onFloorPlansChange: (files: UploadedFile[]) => void
-  onImagesChange: (files: UploadedFile[]) => void
-  initialFloorPlans?: UploadedFile[]
-  initialImages?: UploadedFile[]
+  onFloorPlansChange: (files: UploadedFile[]) => void;
+  onImagesChange: (files: UploadedFile[]) => void;
+  initialFloorPlans?: UploadedFile[];
+  initialImages?: UploadedFile[];
 }
 
 export function ProjectFilesSection({
@@ -20,19 +27,24 @@ export function ProjectFilesSection({
   initialFloorPlans = [],
   initialImages = [],
 }: ProjectFilesSectionProps) {
-  const [showFloorPlanUpload, setShowFloorPlanUpload] = useState(false)
-  const [showImageUpload, setShowImageUpload] = useState(false)
+  const [showFloorPlanUpload, setShowFloorPlanUpload] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Project Files</CardTitle>
-        <CardDescription>Upload floor plans, blueprints, and project images</CardDescription>
+        <CardDescription>
+          Upload floor plans, blueprints, and project images
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="floorplans" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="floorplans" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="floorplans"
+              className="flex items-center space-x-2"
+            >
               <FileText className="h-4 w-4" />
               <span>Floor Plans</span>
             </TabsTrigger>
@@ -46,9 +58,15 @@ export function ProjectFilesSection({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium">Floor Plans & Blueprints</h3>
-                <p className="text-sm text-muted-foreground">Upload PDF files of project blueprints</p>
+                <p className="text-sm text-muted-foreground">
+                  Upload PDF files of project blueprints
+                </p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setShowFloorPlanUpload(!showFloorPlanUpload)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFloorPlanUpload(!showFloorPlanUpload)}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Floor Plans
               </Button>
@@ -58,8 +76,8 @@ export function ProjectFilesSection({
               <FileUpload
                 accept="pdf"
                 onUpload={(files) => {
-                  onFloorPlansChange([...initialFloorPlans, ...files])
-                  setShowFloorPlanUpload(false)
+                  onFloorPlansChange([...initialFloorPlans, ...files]);
+                  setShowFloorPlanUpload(false);
                 }}
                 maxFiles={5}
               />
@@ -73,8 +91,12 @@ export function ProjectFilesSection({
                       <div className="flex items-center space-x-3">
                         <FileText className="h-8 w-8 text-red-500" />
                         <div>
-                          <p className="font-medium text-sm">{file.originalName}</p>
-                          <p className="text-xs text-muted-foreground">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                          <p className="font-medium text-sm">
+                            {file.originalName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(file.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -88,9 +110,15 @@ export function ProjectFilesSection({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium">Project Images</h3>
-                <p className="text-sm text-muted-foreground">Upload reference images and photos</p>
+                <p className="text-sm text-muted-foreground">
+                  Upload reference images and photos
+                </p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setShowImageUpload(!showImageUpload)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowImageUpload(!showImageUpload)}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Images
               </Button>
@@ -100,8 +128,8 @@ export function ProjectFilesSection({
               <FileUpload
                 accept="image"
                 onUpload={(files) => {
-                  onImagesChange([...initialImages, ...files])
-                  setShowImageUpload(false)
+                  onImagesChange([...initialImages, ...files]);
+                  setShowImageUpload(false);
                 }}
                 maxFiles={20}
               />
@@ -111,12 +139,15 @@ export function ProjectFilesSection({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {initialImages.map((file, index) => (
                   <Card key={index} className="overflow-hidden">
-                    <div className="aspect-square bg-muted">
-                      <img
-                        src={file.url || "/placeholder.svg"}
+                    <div className="aspect-square bg-muted relative">
+                      <Image
+                        src={file.url || '/placeholder.svg'}
                         alt={file.originalName}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        priority={false}
+                        unoptimized
                       />
                     </div>
                     <CardContent className="pt-2">
@@ -130,5 +161,5 @@ export function ProjectFilesSection({
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }

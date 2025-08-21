@@ -1,30 +1,32 @@
-import { HomeownerLayout } from "@/components/homeowner/homeowner-layout"
-import { TimelineView } from "@/components/timeline/timeline-view"
-import { GanttChart } from "@/components/timeline/gantt-chart"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getSession } from "@/lib/session"
-import { getProjectsByUserId } from "@/lib/db/projects"
+import { HomeownerLayout } from '@/components/homeowner/homeowner-layout';
+import { TimelineView } from '@/components/timeline/timeline-view';
+import { GanttChart } from '@/components/timeline/gantt-chart';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getSession } from '@/lib/session';
+import { getProjectsByUserId } from '@/lib/db/projects';
 
 async function getHomeownerProject() {
-  const session = await getSession()
-  if (!session) return null
+  const session = await getSession();
+  if (!session) return null;
 
-  const projects = await getProjectsByUserId(session.id, session.role)
-  return projects[0] || null
+  const projects = await getProjectsByUserId(session.id, session.role);
+  return projects[0] || null;
 }
 
 export default async function HomeownerTimelinePage() {
-  const project = await getHomeownerProject()
+  const project = await getHomeownerProject();
 
   if (!project) {
     return (
       <HomeownerLayout>
         <div className="text-center py-12">
           <h2 className="text-xl font-semibold mb-2">No Project Found</h2>
-          <p className="text-muted-foreground">You don't have any construction projects assigned yet.</p>
+          <p className="text-muted-foreground">
+            You don&apos;t have any construction projects assigned yet.
+          </p>
         </div>
       </HomeownerLayout>
-    )
+    );
   }
 
   return (
@@ -32,7 +34,9 @@ export default async function HomeownerTimelinePage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Project Timeline</h1>
-          <p className="text-muted-foreground">Track the progress of your construction project</p>
+          <p className="text-muted-foreground">
+            Track the progress of your construction project
+          </p>
         </div>
 
         <Tabs defaultValue="timeline" className="space-y-6">
@@ -51,5 +55,5 @@ export default async function HomeownerTimelinePage() {
         </Tabs>
       </div>
     </HomeownerLayout>
-  )
+  );
 }

@@ -1,30 +1,57 @@
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import AdminLayout from "@/components/admin/admin-layout"
-import CreateProjectForm from "@/components/admin/create-project-form"
-import { getProjectById } from "@/lib/db/projects"
-import { getDatabase } from "@/lib/mongodb"
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import AdminLayout from '@/components/admin/admin-layout';
+import { CreateProjectForm } from '@/components/admin/create-project-form';
+import { getProjectById } from '@/lib/db/projects';
+import { getDatabase } from '@/lib/mongodb';
 
 async function getUsers() {
-  const db = await getDatabase()
-  const users = await db.collection("users").find({}).toArray()
+  const db = await getDatabase();
+  const users = await db.collection('users').find({}).toArray();
 
   return users.map((user) => ({
-    ...user,
     _id: user._id.toString(),
-  }))
+    name: user.name as string,
+    mobile: user.mobile as string,
+    role: user.role as string,
+  }));
 }
 
-export default async function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const project = await getProjectById(id)
-  const users = await getUsers()
+export default async function EditProjectPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const project = await getProjectById(id);
+  const users = await getUsers();
 
   if (!project) {
-    notFound()
+    notFound();
   }
+
+  const formInitial = {
+    _id: project._id!,
+    name: project.name,
+    description: project.description,
+    budget: project.budget,
+    status: project.status,
+    startDate: project.startDate,
+    endDate: project.endDate,
+    homeownerId: project.homeownerId,
+    engineerIds: project.engineerIds,
+    managerIds: project.managerIds,
+    timeline: project.timeline?.map((p) => ({
+      name: p.name,
+      description: p.description,
+      startDate: p.startDate,
+      endDate: p.endDate,
+    })),
+    floorPlans: project.floorPlans,
+    images: project.images,
+  };
 
   return (
     <AdminLayout>
@@ -44,8 +71,12 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
         </div>
 
         {/* Edit Form */}
-        <CreateProjectForm initialData={project} isEditing={true} users={users} />
+        <CreateProjectForm
+          initialData={formInitial}
+          isEditing={true}
+          users={users}
+        />
       </div>
     </AdminLayout>
-  )
+  );
 }

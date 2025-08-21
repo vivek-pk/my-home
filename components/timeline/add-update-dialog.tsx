@@ -1,75 +1,102 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
-import type { ProjectPhase } from "@/lib/models/Project"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
+import type { ProjectPhase } from '@/lib/models/Project';
 
 interface AddUpdateDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  projectId: string
-  phase: ProjectPhase
-  onSuccess: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  projectId: string;
+  phase: ProjectPhase;
+  onSuccess: () => void;
 }
 
-export function AddUpdateDialog({ open, onOpenChange, projectId, phase, onSuccess }: AddUpdateDialogProps) {
-  const [message, setMessage] = useState("")
-  const [phaseStatus, setPhaseStatus] = useState(phase.status)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+export function AddUpdateDialog({
+  open,
+  onOpenChange,
+  projectId,
+  phase,
+  onSuccess,
+}: AddUpdateDialogProps) {
+  const [message, setMessage] = useState('');
+  const [phaseStatus, setPhaseStatus] = useState(phase.status);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
     try {
+      const trimmed = message.trim();
       const response = await fetch(`/api/projects/${projectId}/updates`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phaseId: phase._id,
-          message,
+          phaseName: phase.name,
+          message: trimmed,
           phaseStatus,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to add update")
+        throw new Error(data.error || 'Failed to add update');
       }
 
-      setMessage("")
-      setPhaseStatus(phase.status)
-      onSuccess()
+  setMessage('');
+  setPhaseStatus(phaseStatus);
+      onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Progress Update</DialogTitle>
-          <DialogDescription>Add an update for the "{phase.name}" phase</DialogDescription>
+          <DialogDescription>
+            Add an update for the &quot;{phase.name}&quot; phase
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="status">Phase Status</Label>
-            <Select value={phaseStatus} onValueChange={setPhaseStatus}>
+            <Select
+              value={phaseStatus}
+              onValueChange={(
+                val: 'pending' | 'in-progress' | 'completed' | 'delayed'
+              ) => setPhaseStatus(val)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -108,15 +135,19 @@ export function AddUpdateDialog({ open, onOpenChange, projectId, phase, onSucces
                   Adding Update...
                 </>
               ) : (
-                "Add Update"
+                'Add Update'
               )}
             </Button>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

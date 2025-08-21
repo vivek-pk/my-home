@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { LogoutButton } from "@/components/auth/logout-button"
 import { Building2, Menu, Home, Clock, FileText, Phone } from "lucide-react"
 import Link from "next/link"
@@ -57,6 +57,9 @@ export function HomeownerHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-64">
+            <SheetHeader>
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            </SheetHeader>
             <div className="flex flex-col space-y-4 mt-6">
               {navigation.map((item) => {
                 const isActive = pathname === item.href

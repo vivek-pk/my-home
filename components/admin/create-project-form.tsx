@@ -1,93 +1,144 @@
-"use client"
+'use client';
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ProjectFilesSection } from "./project-files-section"
-import { Loader2, Plus, X, CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import type { UploadedFile } from "@/components/upload/file-upload"
+import type React from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ProjectFilesSection } from './project-files-section';
+import { Loader2, Plus, X, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import type { UploadedFile } from '@/components/upload/file-upload';
 
 interface User {
-  _id: string
-  name: string
-  mobile: string
-  role: string
+  _id: string;
+  name: string;
+  mobile: string;
+  role: string;
 }
 
 interface ProjectPhase {
-  name: string
-  description: string
-  startDate: Date
-  endDate: Date
+  name: string;
+  description: string;
+  startDate: Date;
+  endDate: Date;
 }
 
 interface CreateProjectFormProps {
-  users?: User[]
-  initialData?: any
-  isEditing?: boolean
+  users?: User[];
+  initialData?: {
+    _id: string;
+    name: string;
+    description: string;
+    budget?: number;
+    status: 'planning' | 'in-progress' | 'completed' | 'on-hold';
+    startDate?: string | Date;
+    endDate?: string | Date;
+    homeownerId: string;
+    engineerIds: string[];
+    managerIds: string[];
+    timeline?: {
+      name: string;
+      description: string;
+      startDate: string | Date;
+      endDate: string | Date;
+    }[];
+    floorPlans?: UploadedFile[];
+    images?: UploadedFile[];
+  };
+  isEditing?: boolean;
 }
 
-export function CreateProjectForm({ users = [], initialData, isEditing = false }: CreateProjectFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
+export function CreateProjectForm({
+  users = [],
+  initialData,
+  isEditing = false,
+}: CreateProjectFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
 
-  const [name, setName] = useState(initialData?.name || "")
-  const [description, setDescription] = useState(initialData?.description || "")
-  const [budget, setBudget] = useState(initialData?.budget || "")
-  const [status, setStatus] = useState(initialData?.status || "planning")
+  const [name, setName] = useState(initialData?.name || '');
+  const [description, setDescription] = useState(
+    initialData?.description || ''
+  );
+  const [budget, setBudget] = useState(initialData?.budget || '');
+  const [status, setStatus] = useState(initialData?.status || 'planning');
   const [projectStartDate, setProjectStartDate] = useState<Date | undefined>(
-    initialData?.startDate ? new Date(initialData.startDate) : undefined,
-  )
+    initialData?.startDate ? new Date(initialData.startDate) : undefined
+  );
   const [projectEndDate, setProjectEndDate] = useState<Date | undefined>(
-    initialData?.endDate ? new Date(initialData.endDate) : undefined,
-  )
-  const [homeownerId, setHomeownerId] = useState(initialData?.homeownerId || "")
-  const [engineerIds, setEngineerIds] = useState<string[]>(initialData?.engineerIds || [])
-  const [managerIds, setManagerIds] = useState<string[]>(initialData?.managerIds || [])
+    initialData?.endDate ? new Date(initialData.endDate) : undefined
+  );
+  const [homeownerId, setHomeownerId] = useState(
+    initialData?.homeownerId || ''
+  );
+  const [engineerIds, setEngineerIds] = useState<string[]>(
+    initialData?.engineerIds || []
+  );
+  const [managerIds, setManagerIds] = useState<string[]>(
+    initialData?.managerIds || []
+  );
   const [phases, setPhases] = useState<ProjectPhase[]>(
-    initialData?.timeline?.map((phase: any) => ({
+    initialData?.timeline?.map((phase) => ({
       name: phase.name,
       description: phase.description,
       startDate: new Date(phase.startDate),
       endDate: new Date(phase.endDate),
-    })) || [],
-  )
-  const [floorPlans, setFloorPlans] = useState<UploadedFile[]>(initialData?.floorPlans || [])
-  const [images, setImages] = useState<UploadedFile[]>(initialData?.images || [])
+    })) || []
+  );
+  const [floorPlans, setFloorPlans] = useState<UploadedFile[]>(
+    initialData?.floorPlans || []
+  );
+  const [images, setImages] = useState<UploadedFile[]>(
+    initialData?.images || []
+  );
 
-  const [allUsers, setAllUsers] = useState<User[]>(users)
+  const [allUsers, setAllUsers] = useState<User[]>(users);
 
   useEffect(() => {
     if (users.length === 0) {
       // Fetch users if not provided
-      fetch("/api/admin/users")
+      fetch('/api/admin/users')
         .then((res) => res.json())
         .then((data) => setAllUsers(data.users || []))
-        .catch(console.error)
+        .catch(console.error);
     }
-  }, [users])
+  }, [users]);
 
-  const homeowners = allUsers.filter((user) => user.role === "homeowner")
-  const engineers = allUsers.filter((user) => user.role === "engineer")
-  const managers = allUsers.filter((user) => user.role === "manager")
+  const homeowners = allUsers.filter((user) => user.role === 'homeowner');
+  const engineers = allUsers.filter((user) => user.role === 'engineer');
+  const managers = allUsers.filter((user) => user.role === 'manager');
 
   const addPhase = () => {
     if (!phaseName || !phaseDescription || !phaseStartDate || !phaseEndDate) {
-      setError("Please fill in all phase details")
-      return
+      setError('Please fill in all phase details');
+      return;
     }
 
     const newPhase: ProjectPhase = {
@@ -95,45 +146,56 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
       description: phaseDescription,
       startDate: phaseStartDate,
       endDate: phaseEndDate,
-    }
+    };
 
-    setPhases([...phases, newPhase])
-    setPhaseName("")
-    setPhaseDescription("")
-    setPhaseStartDate(undefined)
-    setPhaseEndDate(undefined)
-    setShowPhaseForm(false)
-    setError("")
-  }
+    setPhases([...phases, newPhase]);
+    setPhaseName('');
+    setPhaseDescription('');
+    setPhaseStartDate(undefined);
+    setPhaseEndDate(undefined);
+    setShowPhaseForm(false);
+    setError('');
+  };
 
   const removePhase = (index: number) => {
-    setPhases(phases.filter((_, i) => i !== index))
-  }
+    setPhases(phases.filter((_, i) => i !== index));
+  };
 
-  const toggleUser = (userId: string, type: "engineer" | "manager") => {
-    if (type === "engineer") {
-      setEngineerIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
+  const toggleUser = (userId: string, type: 'engineer' | 'manager') => {
+    if (type === 'engineer') {
+      setEngineerIds((prev) =>
+        prev.includes(userId)
+          ? prev.filter((id) => id !== userId)
+          : [...prev, userId]
+      );
     } else {
-      setManagerIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
+      setManagerIds((prev) =>
+        prev.includes(userId)
+          ? prev.filter((id) => id !== userId)
+          : [...prev, userId]
+      );
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
     try {
-      const url = isEditing ? `/api/admin/projects/${initialData._id}` : "/api/admin/projects"
-      const method = isEditing ? "PUT" : "POST"
+      const url =
+        isEditing && initialData
+          ? `/api/admin/projects/${initialData._id}`
+          : '/api/admin/projects';
+      const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
           description,
-          budget: budget ? Number.parseFloat(budget) : undefined,
+          budget: budget ? Number.parseFloat(String(budget)) : undefined,
           status,
           startDate: projectStartDate,
           endDate: projectEndDate,
@@ -142,41 +204,49 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
           managerIds,
           timeline: phases.map((phase) => ({
             ...phase,
-            status: "pending",
+            status: 'pending',
             materials: [],
           })),
           floorPlans,
           images,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || `Failed to ${isEditing ? "update" : "create"} project`)
+        throw new Error(
+          data.error || `Failed to ${isEditing ? 'update' : 'create'} project`
+        );
       }
 
-      router.push(isEditing ? `/admin/projects/${initialData._id}` : "/admin/projects")
+      router.push(
+        isEditing && initialData
+          ? `/admin/projects/${initialData._id}`
+          : '/admin/projects'
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Phase form state
-  const [showPhaseForm, setShowPhaseForm] = useState(false)
-  const [phaseName, setPhaseName] = useState("")
-  const [phaseDescription, setPhaseDescription] = useState("")
-  const [phaseStartDate, setPhaseStartDate] = useState<Date>()
-  const [phaseEndDate, setPhaseEndDate] = useState<Date>()
+  const [showPhaseForm, setShowPhaseForm] = useState(false);
+  const [phaseName, setPhaseName] = useState('');
+  const [phaseDescription, setPhaseDescription] = useState('');
+  const [phaseStartDate, setPhaseStartDate] = useState<Date>();
+  const [phaseEndDate, setPhaseEndDate] = useState<Date>();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Project Details</CardTitle>
-          <CardDescription>Basic information about the construction project</CardDescription>
+          <CardDescription>
+            Basic information about the construction project
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -218,7 +288,12 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
 
             <div className="space-y-2">
               <Label htmlFor="status">Project Stage</Label>
-              <Select value={status} onValueChange={setStatus}>
+              <Select
+                value={status}
+                onValueChange={(
+                  v: 'planning' | 'in-progress' | 'completed' | 'on-hold'
+                ) => setStatus(v)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select project stage" />
                 </SelectTrigger>
@@ -240,16 +315,23 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !projectStartDate && "text-muted-foreground",
+                      'w-full justify-start text-left font-normal',
+                      !projectStartDate && 'text-muted-foreground'
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {projectStartDate ? format(projectStartDate, "PPP") : "Select start date"}
+                    {projectStartDate
+                      ? format(projectStartDate, 'PPP')
+                      : 'Select start date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={projectStartDate} onSelect={setProjectStartDate} initialFocus />
+                  <Calendar
+                    mode="single"
+                    selected={projectStartDate}
+                    onSelect={setProjectStartDate}
+                    initialFocus
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -261,16 +343,23 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !projectEndDate && "text-muted-foreground",
+                      'w-full justify-start text-left font-normal',
+                      !projectEndDate && 'text-muted-foreground'
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {projectEndDate ? format(projectEndDate, "PPP") : "Select end date"}
+                    {projectEndDate
+                      ? format(projectEndDate, 'PPP')
+                      : 'Select end date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={projectEndDate} onSelect={setProjectEndDate} initialFocus />
+                  <Calendar
+                    mode="single"
+                    selected={projectEndDate}
+                    onSelect={setProjectEndDate}
+                    initialFocus
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -297,7 +386,9 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
       <Card>
         <CardHeader>
           <CardTitle>Team Assignment</CardTitle>
-          <CardDescription>Assign engineers and managers to this project</CardDescription>
+          <CardDescription>
+            Assign engineers and managers to this project
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
@@ -306,9 +397,11 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
               {engineers.map((engineer) => (
                 <Badge
                   key={engineer._id}
-                  variant={engineerIds.includes(engineer._id) ? "default" : "outline"}
+                  variant={
+                    engineerIds.includes(engineer._id) ? 'default' : 'outline'
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleUser(engineer._id, "engineer")}
+                  onClick={() => toggleUser(engineer._id, 'engineer')}
                 >
                   {engineer.name}
                 </Badge>
@@ -322,9 +415,11 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
               {managers.map((manager) => (
                 <Badge
                   key={manager._id}
-                  variant={managerIds.includes(manager._id) ? "default" : "outline"}
+                  variant={
+                    managerIds.includes(manager._id) ? 'default' : 'outline'
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleUser(manager._id, "manager")}
+                  onClick={() => toggleUser(manager._id, 'manager')}
                 >
                   {manager.name}
                 </Badge>
@@ -346,9 +441,16 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Project Timeline</CardTitle>
-              <CardDescription>Define phases and milestones for the project</CardDescription>
+              <CardDescription>
+                Define phases and milestones for the project
+              </CardDescription>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowPhaseForm(true)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPhaseForm(true)}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Phase
             </Button>
@@ -385,16 +487,23 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !phaseStartDate && "text-muted-foreground",
+                            'w-full justify-start text-left font-normal',
+                            !phaseStartDate && 'text-muted-foreground'
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {phaseStartDate ? format(phaseStartDate, "PPP") : "Pick a date"}
+                          {phaseStartDate
+                            ? format(phaseStartDate, 'PPP')
+                            : 'Pick a date'}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={phaseStartDate} onSelect={setPhaseStartDate} initialFocus />
+                        <Calendar
+                          mode="single"
+                          selected={phaseStartDate}
+                          onSelect={setPhaseStartDate}
+                          initialFocus
+                        />
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -406,16 +515,23 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !phaseEndDate && "text-muted-foreground",
+                            'w-full justify-start text-left font-normal',
+                            !phaseEndDate && 'text-muted-foreground'
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {phaseEndDate ? format(phaseEndDate, "PPP") : "Pick a date"}
+                          {phaseEndDate
+                            ? format(phaseEndDate, 'PPP')
+                            : 'Pick a date'}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={phaseEndDate} onSelect={setPhaseEndDate} initialFocus />
+                        <Calendar
+                          mode="single"
+                          selected={phaseEndDate}
+                          onSelect={setPhaseEndDate}
+                          initialFocus
+                        />
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -425,7 +541,12 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
                   <Button type="button" size="sm" onClick={addPhase}>
                     Add Phase
                   </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setShowPhaseForm(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPhaseForm(false)}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -441,12 +562,20 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium">{phase.name}</h4>
-                        <p className="text-sm text-muted-foreground">{phase.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {phase.description}
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {format(phase.startDate, "MMM d, yyyy")} - {format(phase.endDate, "MMM d, yyyy")}
+                          {format(phase.startDate, 'MMM d, yyyy')} -{' '}
+                          {format(phase.endDate, 'MMM d, yyyy')}
                         </p>
                       </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removePhase(index)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removePhase(index)}
+                      >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -469,12 +598,12 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEditing ? "Updating Project..." : "Creating Project..."}
+              {isEditing ? 'Updating Project...' : 'Creating Project...'}
             </>
           ) : isEditing ? (
-            "Update Project"
+            'Update Project'
           ) : (
-            "Create Project"
+            'Create Project'
           )}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
@@ -482,7 +611,7 @@ export function CreateProjectForm({ users = [], initialData, isEditing = false }
         </Button>
       </div>
     </form>
-  )
+  );
 }
 
-export default CreateProjectForm
+export default CreateProjectForm;

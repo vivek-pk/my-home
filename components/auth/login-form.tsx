@@ -1,61 +1,67 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Phone } from "lucide-react"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Phone } from 'lucide-react';
 
 export function LoginForm() {
-  const [mobile, setMobile] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
+  const [mobile, setMobile] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Login failed")
+        throw new Error(data.error || 'Login failed');
       }
 
       // Redirect based on user role
       switch (data.user.role) {
-        case "admin":
-          router.push("/admin")
-          break
-        case "engineer":
-        case "manager":
-          router.push("/dashboard")
-          break
-        case "homeowner":
-          router.push("/homeowner")
-          break
+        case 'admin':
+          router.push('/admin');
+          break;
+        case 'engineer':
+        case 'manager':
+          router.push('/dashboard');
+          break;
+        case 'homeowner':
+          router.push('/homeowner');
+          break;
         default:
-          router.push("/")
+          router.push('/');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -65,7 +71,10 @@ export function LoginForm() {
             <Phone className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-          <CardDescription>Enter your registered mobile number to access your construction projects</CardDescription>
+          <CardDescription>
+            Enter your registered mobile number to access your construction
+            projects
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,17 +105,17 @@ export function LoginForm() {
                   Signing In...
                 </>
               ) : (
-                "Sign In"
+                'Sign In'
               )}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>Don't have access?</p>
+            <p>Don&apos;t have access?</p>
             <p>Contact your project administrator to get registered.</p>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
