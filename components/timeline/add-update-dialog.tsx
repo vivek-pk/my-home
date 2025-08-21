@@ -68,8 +68,8 @@ export function AddUpdateDialog({
         throw new Error(data.error || 'Failed to add update');
       }
 
-  setMessage('');
-  setPhaseStatus(phaseStatus);
+      setMessage('');
+      setPhaseStatus(phaseStatus);
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

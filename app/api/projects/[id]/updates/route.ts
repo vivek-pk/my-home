@@ -21,11 +21,12 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-  const { phaseId, phaseName, message, phaseStatus, images } = await request.json();
-  const msg = typeof message === 'string' ? message.trim() : ''
+    const { phaseId, phaseName, message, phaseStatus, images } =
+      await request.json();
+    const msg = typeof message === 'string' ? message.trim() : '';
 
-  // Require a phase selector (id or name) and at least one of message or phaseStatus
-  if ((!phaseId && !phaseName) || (!msg && !phaseStatus)) {
+    // Require a phase selector (id or name) and at least one of message or phaseStatus
+    if ((!phaseId && !phaseName) || (!msg && !phaseStatus)) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -49,12 +50,14 @@ export async function POST(
 
     // Locate target phase by id or name
     const targetIndex = project.timeline.findIndex(
-      (p) => (phaseId && p._id === phaseId) || (!phaseId && phaseName && p.name === phaseName)
-    )
+      (p) =>
+        (phaseId && p._id === phaseId) ||
+        (!phaseId && phaseName && p.name === phaseName)
+    );
     if (targetIndex === -1) {
-      return NextResponse.json({ error: 'Phase not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Phase not found' }, { status: 404 });
     }
-    const targetPhase = project.timeline[targetIndex]
+    const targetPhase = project.timeline[targetIndex];
 
     // Build update payload
     const update = {
@@ -70,10 +73,12 @@ export async function POST(
         await addProjectUpdate(id, targetPhase._id, update);
       } else {
         // Fallback for legacy phases without _id: update timeline immutably by index
-        const updateWithId = { ...update, _id: new ObjectId().toString() }
+        const updateWithId = { ...update, _id: new ObjectId().toString() };
         const updatedTimeline = project.timeline.map((p, i) =>
-          i === targetIndex ? { ...p, updates: [...(p.updates || []), updateWithId] } : p
-        )
+          i === targetIndex
+            ? { ...p, updates: [...(p.updates || []), updateWithId] }
+            : p
+        );
         await updateProject(id, { timeline: updatedTimeline });
       }
     }

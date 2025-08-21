@@ -45,7 +45,9 @@ export async function POST(
 
     // Find target phase by id or name
     const targetIndex = project.timeline.findIndex(
-      (p) => (phaseId && p._id === phaseId) || (!phaseId && phaseName && p.name === phaseName)
+      (p) =>
+        (phaseId && p._id === phaseId) ||
+        (!phaseId && phaseName && p.name === phaseName)
     );
     if (targetIndex === -1) {
       return NextResponse.json({ error: 'Phase not found' }, { status: 404 });
@@ -55,7 +57,8 @@ export async function POST(
     type Incoming = unknown;
     const has = (o: Incoming, k: string) =>
       typeof o === 'object' && o !== null && k in o;
-    const get = (o: Incoming, k: string) => (has(o, k) ? (o as Record<string, unknown>)[k] : undefined);
+    const get = (o: Incoming, k: string) =>
+      has(o, k) ? (o as Record<string, unknown>)[k] : undefined;
 
     const safeMaterials = (materials as Incoming[])
       .filter((m) => has(m, 'name') && has(m, 'unit'))
@@ -64,14 +67,20 @@ export async function POST(
         unit: String(get(m, 'unit') ?? '').trim(),
         quantity: Number(get(m, 'quantity') ?? 0),
         cost:
-          get(m, 'cost') !== undefined && get(m, 'cost') !== null && get(m, 'cost') !== ''
+          get(m, 'cost') !== undefined &&
+          get(m, 'cost') !== null &&
+          get(m, 'cost') !== ''
             ? Number(get(m, 'cost'))
             : undefined,
         supplier: get(m, 'supplier') ? String(get(m, 'supplier')) : undefined,
       }));
 
     const updatedTimeline = project.timeline.map((phase, i) =>
-      (project.timeline[targetIndex]._id ? phase._id === project.timeline[targetIndex]._id : i === targetIndex)
+      (
+        project.timeline[targetIndex]._id
+          ? phase._id === project.timeline[targetIndex]._id
+          : i === targetIndex
+      )
         ? { ...phase, materials: safeMaterials }
         : phase
     );

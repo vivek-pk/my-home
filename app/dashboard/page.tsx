@@ -61,7 +61,9 @@ export default async function EngineerManagerDashboard() {
                 <Badge variant="outline">{session?.role}</Badge>
                 <nav className="hidden md:flex items-center gap-2">
                   <Link href="/dashboard">
-                    <Button variant="ghost" size="sm">My Projects</Button>
+                    <Button variant="ghost" size="sm">
+                      My Projects
+                    </Button>
                   </Link>
                 </nav>
                 <LogoutButton variant="outline" size="sm" />

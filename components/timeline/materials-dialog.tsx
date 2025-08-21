@@ -62,16 +62,22 @@ export function MaterialsDialog({
       // If user entered a new material but didn't click Add, include it
       const pending =
         newMaterial.name && newMaterial.unit && newMaterial.quantity
-          ? [{
-              name: String(newMaterial.name),
-              unit: String(newMaterial.unit),
-              quantity: Number(newMaterial.quantity),
-              cost:
-                newMaterial.cost !== undefined && newMaterial.cost !== null && Number.isFinite(Number(newMaterial.cost))
-                  ? Number(newMaterial.cost)
+          ? [
+              {
+                name: String(newMaterial.name),
+                unit: String(newMaterial.unit),
+                quantity: Number(newMaterial.quantity),
+                cost:
+                  newMaterial.cost !== undefined &&
+                  newMaterial.cost !== null &&
+                  Number.isFinite(Number(newMaterial.cost))
+                    ? Number(newMaterial.cost)
+                    : undefined,
+                supplier: newMaterial.supplier
+                  ? String(newMaterial.supplier)
                   : undefined,
-              supplier: newMaterial.supplier ? String(newMaterial.supplier) : undefined,
-            }]
+              },
+            ]
           : [];
       const outgoing = [...materials, ...pending];
 
@@ -91,7 +97,7 @@ export function MaterialsDialog({
         throw new Error(data.error || 'Failed to update materials');
       }
 
-  onSuccess();
+      onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

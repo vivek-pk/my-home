@@ -48,7 +48,9 @@ export default async function ProjectTimelinePage({
               </div>
               <div className="flex items-center gap-2">
                 <Link href={`/dashboard/projects/${project._id}`}>
-                  <Button variant="ghost" size="sm">Project</Button>
+                  <Button variant="ghost" size="sm">
+                    Project
+                  </Button>
                 </Link>
                 <LogoutButton variant="outline" size="sm" />
               </div>
