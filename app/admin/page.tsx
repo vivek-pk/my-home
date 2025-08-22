@@ -49,6 +49,7 @@ export default function AdminDashboard() {
         const response = await fetch('/api/admin/dashboard');
         if (response.ok) {
           const data = await response.json();
+          console.log("sats",data);
           setStats(data);
         }
       } catch (error) {
