@@ -153,7 +153,7 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   {stats.recent.map((item) => (
                     <Link
-                      key={`${item.projectId}-${item.createdAt.toISOString()}`}
+                      key={`${item.projectId}-${new Date(item.createdAt).toISOString()}`}
                       href={`/admin/projects/${item.projectId}`}
                       className="flex items-start space-x-3 p-2 rounded-md hover:bg-primary hover:text-white transition-colors group"
                     >
