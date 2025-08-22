@@ -30,23 +30,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ProjectFilesSection } from './project-files-section';
+import { FileUpload } from '@/components/upload/file-upload';
 import { Loader2, Plus, X, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { UploadedFile } from '@/components/upload/file-upload';
+import type { ProjectPhase } from '@/lib/models/Project';
 
 interface User {
   _id: string;
   name: string;
   mobile: string;
   role: string;
-}
-
-interface ProjectPhase {
-  name: string;
-  description: string;
-  startDate: Date;
-  endDate: Date;
 }
 
 interface CreateProjectFormProps {
@@ -106,10 +101,14 @@ export function CreateProjectForm({
   );
   const [phases, setPhases] = useState<ProjectPhase[]>(
     initialData?.timeline?.map((phase) => ({
+      _id: undefined, // Will be generated on server
       name: phase.name,
       description: phase.description,
       startDate: new Date(phase.startDate),
       endDate: new Date(phase.endDate),
+      status: 'pending' as const,
+      materials: [],
+      updates: [],
     })) || []
   );
   const [floorPlans, setFloorPlans] = useState<UploadedFile[]>(
@@ -117,6 +116,9 @@ export function CreateProjectForm({
   );
   const [images, setImages] = useState<UploadedFile[]>(
     initialData?.images || []
+  );
+  const [coverImage, setCoverImage] = useState<UploadedFile | null>(
+    (initialData?.images && initialData.images[0]) || null
   );
 
   const [allUsers, setAllUsers] = useState<User[]>(users);
@@ -142,10 +144,14 @@ export function CreateProjectForm({
     }
 
     const newPhase: ProjectPhase = {
+      _id: crypto.randomUUID(), // Generate unique ID for new phases
       name: phaseName,
       description: phaseDescription,
       startDate: phaseStartDate,
       endDate: phaseEndDate,
+      status: 'pending' as const,
+      materials: [],
+      updates: [],
     };
 
     setPhases([...phases, newPhase]);
@@ -209,6 +215,7 @@ export function CreateProjectForm({
           })),
           floorPlans,
           images,
+          coverImage: coverImage || undefined,
         }),
       });
 
@@ -435,6 +442,62 @@ export function CreateProjectForm({
         initialFloorPlans={floorPlans}
         initialImages={images}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Cover Image</CardTitle>
+          <CardDescription>
+            This featured image will appear on the homeowner cover page
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {coverImage ? (
+            <div className="flex items-center justify-between gap-4 p-3 border rounded-md">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="size-12 rounded overflow-hidden bg-muted flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={coverImage.url}
+                    alt={coverImage.originalName}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {coverImage.originalName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {(coverImage.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCoverImage(null)}
+              >
+                Remove
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Select one image to highlight the project.
+              </p>
+              <div>
+                <FileUpload
+                  accept="image"
+                  maxFiles={1}
+                  onUpload={(files: UploadedFile[]) =>
+                    setCoverImage(files[0] || null)
+                  }
+                />
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

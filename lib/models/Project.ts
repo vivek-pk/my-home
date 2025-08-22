@@ -15,6 +15,7 @@ export interface Project {
   updatedAt: Date;
   floorPlans: FileUpload[];
   images: FileUpload[];
+  coverImage?: FileUpload; // Featured image for cover page
 }
 
 export interface ProjectPhase {
@@ -42,6 +43,7 @@ export interface ProjectUpdate {
   userName: string;
   message: string;
   images?: FileUpload[];
+  coverImage?: FileUpload;
   createdAt: Date;
 }
 

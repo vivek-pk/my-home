@@ -3,6 +3,7 @@ import type {
   Project,
   CreateProjectData,
   ProjectUpdate,
+  FileUpload,
 } from '../models/Project';
 import { ObjectId, type Collection, type Document, type Filter } from 'mongodb';
 
@@ -37,6 +38,8 @@ export async function createProject(
     updatedAt: new Date(),
     floorPlans: projectData.floorPlans || [],
     images: projectData.images || [],
+    coverImage: (projectData as CreateProjectData & { coverImage?: FileUpload })
+      .coverImage,
   };
 
   const result = await collection.insertOne(project as unknown as Document);

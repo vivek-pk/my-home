@@ -1,80 +1,153 @@
-import { AdminLayout } from "@/components/admin/admin-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getDatabase } from "@/lib/mongodb"
-import { Building2, Users, Clock, CheckCircle, FolderPlus, ChevronRight } from "lucide-react"
-import { cn } from "@/lib/utils"
-import Link from "next/link"
+import { AdminLayout } from '@/components/admin/admin-layout';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { getDatabase } from '@/lib/mongodb';
+import {
+  Building2,
+  Users,
+  Clock,
+  CheckCircle,
+  FolderPlus,
+  ChevronRight,
+  Activity,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import type {
+  Project,
+  ProjectPhase,
+  ProjectUpdate,
+} from '@/lib/models/Project';
+import { formatDistanceToNow } from 'date-fns';
 
-async function getDashboardStats() {
-  const db = await getDatabase()
+interface RecentActivityItem {
+  projectId: string;
+  projectName: string;
+  phaseName?: string;
+  message: string;
+  userName?: string;
+  createdAt: Date;
+}
 
-  const [totalProjects, totalUsers, activeProjects, completedProjects] = await Promise.all([
-    db.collection("projects").countDocuments(),
-    db.collection("users").countDocuments(),
-    db.collection("projects").countDocuments({ status: "in-progress" }),
-    db.collection("projects").countDocuments({ status: "completed" }),
-  ])
+async function getDashboardStats(): Promise<{
+  totalProjects: number;
+  totalUsers: number;
+  activeProjects: number;
+  completedProjects: number;
+  recent: RecentActivityItem[];
+}> {
+  const db = await getDatabase();
+
+  const [
+    totalProjects,
+    totalUsers,
+    activeProjects,
+    completedProjects,
+    projects,
+  ] = await Promise.all([
+    db.collection('projects').countDocuments(),
+    db.collection('users').countDocuments(),
+    db.collection('projects').countDocuments({ status: 'in-progress' }),
+    db.collection('projects').countDocuments({ status: 'completed' }),
+    db
+      .collection('projects')
+      .find({})
+      .project({ name: 1, timeline: 1 })
+      .toArray(),
+  ]);
+
+  // Extract updates from all project phases
+  const recent: RecentActivityItem[] = [];
+  for (const p of projects as unknown as Project[]) {
+    for (const phase of (p.timeline || []) as ProjectPhase[]) {
+      for (const upd of (phase.updates || []) as ProjectUpdate[]) {
+        recent.push({
+          projectId: p._id || '',
+          projectName: p.name,
+          phaseName: phase.name,
+          message: upd.message,
+          userName: upd.userName,
+          createdAt: new Date(upd.createdAt),
+        });
+      }
+    }
+  }
+
+  recent.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const limitedRecent = recent.slice(0, 8);
 
   return {
     totalProjects,
     totalUsers,
     activeProjects,
     completedProjects,
-  }
+    recent: limitedRecent,
+  };
 }
 
 export default async function AdminDashboard() {
-  const stats = await getDashboardStats()
+  const stats = await getDashboardStats();
 
   const statCards = [
     {
-      title: "Total Projects",
+      title: 'Total Projects',
       value: stats.totalProjects,
-      description: "All construction projects",
+      description: 'All construction projects',
       icon: Building2,
-      color: "text-primary",
+      color: 'text-primary',
     },
     {
-      title: "Total Users",
+      title: 'Total Users',
       value: stats.totalUsers,
-      description: "Registered users in system",
+      description: 'Registered users in system',
       icon: Users,
-      color: "text-secondary",
+      color: 'text-secondary',
     },
     {
-      title: "Active Projects",
+      title: 'Active Projects',
       value: stats.activeProjects,
-      description: "Currently in progress",
+      description: 'Currently in progress',
       icon: Clock,
-      color: "text-orange-600",
+      color: 'text-orange-600',
     },
     {
-      title: "Completed Projects",
+      title: 'Completed Projects',
       value: stats.completedProjects,
-      description: "Successfully finished",
+      description: 'Successfully finished',
       icon: CheckCircle,
-      color: "text-green-600",
+      color: 'text-green-600',
     },
-  ]
+  ];
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your construction projects and team members</p>
+          <p className="text-muted-foreground">
+            Manage your construction projects and team members
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {statCards.map((stat) => (
             <Card key={stat.title}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className={cn("h-4 w-4", stat.color)} />
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className={cn('h-4 w-4', stat.color)} />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {stat.description}
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -84,32 +157,52 @@ export default async function AdminDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest updates from your projects</CardDescription>
+              <CardDescription>Latest real project updates</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="h-2 w-2 bg-primary rounded-full" />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">New project created</p>
-                    <p className="text-xs text-muted-foreground">2 hours ago</p>
-                  </div>
+              {stats.recent.length > 0 ? (
+                <div className="space-y-4">
+                  {stats.recent.map((item) => (
+                    <Link
+                      key={`${item.projectId}-${item.createdAt.toISOString()}`}
+                      href={`/admin/projects/${item.projectId}`}
+                      className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent transition-colors"
+                    >
+                      <Activity className="h-4 w-4 mt-1 text-muted-foreground" />
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm">
+                          <span className="font-medium">
+                            {item.projectName}
+                          </span>{' '}
+                          {item.phaseName && (
+                            <>
+                              –{' '}
+                              <span className="text-muted-foreground">
+                                {item.phaseName}
+                              </span>
+                            </>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {item.message}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {item.userName && (
+                            <span className="mr-1">{item.userName} •</span>
+                          )}
+                          {formatDistanceToNow(item.createdAt, {
+                            addSuffix: true,
+                          })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="h-2 w-2 bg-secondary rounded-full" />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">Timeline updated</p>
-                    <p className="text-xs text-muted-foreground">4 hours ago</p>
-                  </div>
+              ) : (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  No recent activity
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="h-2 w-2 bg-green-500 rounded-full" />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">Project completed</p>
-                    <p className="text-xs text-muted-foreground">1 day ago</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -144,5 +237,5 @@ export default async function AdminDashboard() {
         </div>
       </div>
     </AdminLayout>
-  )
+  );
 }

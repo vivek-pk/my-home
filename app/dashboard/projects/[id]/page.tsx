@@ -53,20 +53,34 @@ export default async function ProjectDetailsPage({
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">{project.name}</h1>
-                <p className="text-muted-foreground">Project Overview</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold leading-tight break-words">
+                  {project.name}
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  Project Overview
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{session.role}</Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-xs sm:text-sm">
+                  {session.role}
+                </Badge>
                 <Link href={`/dashboard/projects/${project._id}/timeline`}>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
                     Timeline
                   </Button>
                 </Link>
                 <Link href="/dashboard">
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
                     My Projects
                   </Button>
                 </Link>
@@ -81,7 +95,7 @@ export default async function ProjectDetailsPage({
               <CardTitle>Details</CardTitle>
               <CardDescription>{project.description}</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3 text-sm">
+            <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>
@@ -106,11 +120,11 @@ export default async function ProjectDetailsPage({
                 <CardTitle>Phases</CardTitle>
                 <CardDescription>Key stages and current status</CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-3 md:grid-cols-2">
+              <CardContent className="grid gap-3 sm:grid-cols-2">
                 {project.timeline.map((p) => (
                   <div
                     key={p._id ?? p.name}
-                    className="flex items-center justify-between border rounded p-3"
+                    className="flex items-center justify-between border rounded p-3 gap-4"
                   >
                     <div>
                       <div className="font-medium">{p.name}</div>

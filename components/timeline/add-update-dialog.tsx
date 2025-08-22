@@ -115,9 +115,8 @@ export function AddUpdateDialog({
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Describe the progress, issues, or completion status..."
+              placeholder="Describe the progress, issues, or completion status... (optional if just changing status)"
               rows={4}
-              required
             />
           </div>
 

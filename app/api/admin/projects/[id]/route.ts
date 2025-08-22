@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { getProjectById, updateProject } from '@/lib/db/projects';
+import { ObjectId } from 'mongodb';
 
 export const runtime = 'nodejs';
 
@@ -87,7 +88,8 @@ export async function PUT(
           (e) => e.name === p.name
         );
         return {
-          _id: p._id || existing?._id,
+          _id: p._id || existing?._id || new ObjectId().toString(),
+          updates: existing?.updates || [],
           ...(phase as object),
         } as unknown as (typeof existingProject.timeline)[number];
       });
@@ -99,6 +101,7 @@ export async function PUT(
       // preserve files if not explicitly provided
       floorPlans: projectData.floorPlans ?? existingProject.floorPlans,
       images: projectData.images ?? existingProject.images,
+      coverImage: projectData.coverImage ?? existingProject.coverImage,
     });
 
     return NextResponse.json({ success: true, project: updatedProject });

@@ -50,23 +50,28 @@ export default async function EngineerManagerDashboard() {
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-                <p className="text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold leading-tight">Dashboard</h1>
+                <p className="text-muted-foreground text-sm">
                   Welcome back, {session?.name}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline">{session?.role}</Badge>
-                <nav className="hidden md:flex items-center gap-2">
-                  <Link href="/dashboard">
-                    <Button variant="ghost" size="sm">
-                      My Projects
-                    </Button>
-                  </Link>
-                </nav>
-                <LogoutButton variant="outline" size="sm" />
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="order-2 sm:order-none text-xs sm:text-sm"
+                >
+                  {session?.role}
+                </Badge>
+                <Link href="/dashboard" className="hidden sm:inline-flex">
+                  <Button variant="ghost" size="sm">
+                    My Projects
+                  </Button>
+                </Link>
+                <div className="ml-auto sm:ml-0">
+                  <LogoutButton variant="outline" size="sm" />
+                </div>
               </div>
             </div>
           </div>
@@ -74,7 +79,7 @@ export default async function EngineerManagerDashboard() {
 
         <main className="container mx-auto px-4 py-6 space-y-6">
           {projects.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map((project) => {
                 const projectStatus = getProjectStatus(project);
                 const activeTasks = project.timeline.filter(
@@ -117,7 +122,7 @@ export default async function EngineerManagerDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Link
                           href={`/dashboard/projects/${project._id}`}
                           className="flex-1"
@@ -133,7 +138,11 @@ export default async function EngineerManagerDashboard() {
                         <Link
                           href={`/dashboard/projects/${project._id}/timeline`}
                         >
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                          >
                             <Clock className="h-4 w-4" />
                           </Button>
                         </Link>

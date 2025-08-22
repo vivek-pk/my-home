@@ -107,25 +107,62 @@ export default async function HomeownerDashboard() {
   const projectStatus = getProjectStatus(project);
   const nextMilestone = getNextMilestone(project);
   const recentUpdates = project.timeline
-    .flatMap((phase: ProjectPhase) => phase.updates || [])
+    .flatMap((phase: ProjectPhase) =>
+      Array.isArray(phase.updates) ? phase.updates : []
+    )
+    .filter((u: ProjectUpdate) => !!u && !!u.createdAt)
     .sort(
       (a: ProjectUpdate, b: ProjectUpdate) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
-    .slice(0, 3);
+    .slice(0, 5);
 
   return (
     <HomeownerLayout>
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold">
+        <div className="text-center space-y-1 px-2">
+          <h1 className="text-2xl md:text-3xl font-bold leading-tight">
             Welcome back, {data.user?.name}!
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm md:text-base">
             Here&apos;s the latest on your construction project
           </p>
         </div>
+
+        {/* Cover Section */}
+        {project.coverImage && (
+          <div className="relative rounded-lg overflow-hidden border">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={project.coverImage.url}
+              alt={project.coverImage.originalName}
+              className="h-48 w-full object-cover md:h-64"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 space-y-2">
+              <h2 className="text-xl md:text-2xl font-semibold drop-shadow-sm">
+                {project.name}
+              </h2>
+              <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+                <Badge className={projectStatus.color}>
+                  {projectStatus.status}
+                </Badge>
+                {project.budget && (
+                  <span className="px-2 py-1 rounded bg-background/70 border text-muted-foreground">
+                    Budget: ${project.budget.toLocaleString()}
+                  </span>
+                )}
+                {project.startDate && project.endDate && (
+                  <span className="px-2 py-1 rounded bg-background/70 border text-muted-foreground">
+                    {format(new Date(project.startDate), 'MMM d')} –{' '}
+                    {format(new Date(project.endDate), 'MMM d, yyyy')}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Project Overview */}
         <Card>
@@ -149,7 +186,7 @@ export default async function HomeownerDashboard() {
               <Progress value={projectStatus.progress} className="h-2" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center space-x-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
                 <span>{project.timeline.length} Total Phases</span>
@@ -193,7 +230,7 @@ export default async function HomeownerDashboard() {
                   </p>
                 </div>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
-                  <div className="flex items-center space-x-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
                     <span>
                       Expected:{' '}
                       {format(new Date(nextMilestone.endDate), 'MMM d, yyyy')}
@@ -267,7 +304,7 @@ export default async function HomeownerDashboard() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link href="/homeowner/timeline">
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="flex items-center space-x-4 pt-6">

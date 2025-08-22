@@ -63,6 +63,7 @@ export function ProjectFilesSection({
                 </p>
               </div>
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFloorPlanUpload(!showFloorPlanUpload)}
@@ -115,6 +116,7 @@ export function ProjectFilesSection({
                 </p>
               </div>
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setShowImageUpload(!showImageUpload)}

@@ -23,10 +23,13 @@ export async function POST(
 
     const { phaseId, phaseName, message, phaseStatus, images } =
       await request.json();
-    const msg = typeof message === 'string' ? message.trim() : '';
+    const rawMsg = typeof message === 'string' ? message.trim() : '';
+    // If only a status change without message, create a synthetic message so homeowners can see activity
+    const msg =
+      rawMsg || (phaseStatus ? `Status changed to ${phaseStatus}` : '');
 
     // Require a phase selector (id or name) and at least one of message or phaseStatus
-    if ((!phaseId && !phaseName) || (!msg && !phaseStatus)) {
+    if ((!phaseId && !phaseName) || (!rawMsg && !phaseStatus)) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -83,7 +86,7 @@ export async function POST(
       }
     }
 
-    // Update phase status if provided
+    // Update phase status if provided (avoid double-updating timeline already mutated above without status change)
     if (phaseStatus) {
       const updatedTimeline = project.timeline.map((p, i) =>
         (targetPhase._id ? p._id === targetPhase._id : i === targetIndex)

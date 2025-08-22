@@ -10,7 +10,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { getDatabase } from '@/lib/mongodb';
 import Link from 'next/link';
-import { Plus, Users, Phone, Calendar } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
+// Using relative import for UserCard to avoid transient path alias resolution issue
+import { UserCard } from '../../../components/admin/user-card';
 import type { User } from '@/lib/models/User';
 
 type Role = User['role'];
@@ -141,39 +143,7 @@ export default async function UsersPage() {
                 {roleUsers.length > 0 ? (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {roleUsers.map((user) => (
-                      <Card
-                        key={user._id}
-                        className="hover:shadow-md transition-shadow"
-                      >
-                        <CardContent className="pt-4">
-                          <div className="space-y-3">
-                            <div>
-                              <h3 className="font-medium">{user.name}</h3>
-                              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                <Phone className="h-3 w-3" />
-                                <span>{user.mobile}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                                <Calendar className="h-3 w-3" />
-                                <span>
-                                  Added{' '}
-                                  {new Date(
-                                    user.createdAt
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <Badge
-                                variant="outline"
-                                className={getRoleColor(user.role)}
-                              >
-                                {user.role}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <UserCard key={user._id} user={user} />
                     ))}
                   </div>
                 ) : (

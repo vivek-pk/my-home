@@ -39,16 +39,22 @@ export default async function ProjectTimelinePage({
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">{project.name}</h1>
-                <p className="text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold leading-tight break-words">
+                  {project.name}
+                </h1>
+                <p className="text-muted-foreground text-sm">
                   Project Timeline & Progress
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Link href={`/dashboard/projects/${project._id}`}>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
                     Project
                   </Button>
                 </Link>
@@ -59,7 +65,9 @@ export default async function ProjectTimelinePage({
         </header>
 
         <main className="container mx-auto px-4 py-6">
-          <TimelineView project={project} canEdit={true} />
+          <div className="rounded border p-2 sm:p-4">
+            <TimelineView project={project} canEdit={true} />
+          </div>
         </main>
       </div>
     </ProtectedRoute>
