@@ -49,7 +49,15 @@ export function AddUpdateDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+
+    // Allow submission if there's a message OR if status has changed
+    const hasMessage = message.trim().length > 0;
+    const statusChanged = phaseStatus !== phase.status;
+
+    if (!hasMessage && !statusChanged) {
+      setError('Please provide an update message or change the phase status');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
@@ -63,7 +71,7 @@ export function AddUpdateDialog({
         body: JSON.stringify({
           message: message.trim(),
           phaseId: phase._id || '',
-          status: phaseStatus,
+          phaseStatus: phaseStatus, // Fix: use phaseStatus instead of status
           images: uploadedFiles, // Send the already uploaded files
         }),
       });
@@ -88,7 +96,7 @@ export function AddUpdateDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Progress Update</DialogTitle>
           <DialogDescription>
@@ -124,17 +132,20 @@ export function AddUpdateDialog({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe the progress, issues, or completion status... (optional if just changing status)"
-              rows={4}
+              rows={3}
+              className="min-h-[80px] max-h-[120px]"
             />
           </div>
 
           <div className="space-y-2">
             <Label>Images (optional)</Label>
-            <FileUpload
-              onUpload={setUploadedFiles}
-              maxFiles={5}
-              accept="image"
-            />
+            <div className="max-h-[200px] overflow-y-auto">
+              <FileUpload
+                onUpload={setUploadedFiles}
+                maxFiles={5}
+                accept="image"
+              />
+            </div>
           </div>
 
           {error && (

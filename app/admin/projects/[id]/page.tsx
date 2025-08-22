@@ -83,7 +83,7 @@ export default async function AdminProjectDetailsPage({
               )}
               {project.budget != null && (
                 <div className="text-muted-foreground">
-                  Budget: ${project.budget.toLocaleString()}
+                  Budget: ₹{project.budget.toLocaleString()}
                 </div>
               )}
             </CardContent>

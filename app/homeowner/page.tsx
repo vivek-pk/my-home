@@ -144,7 +144,7 @@ export default async function HomeownerDashboard() {
                 </Badge>
                 {project.budget && (
                   <span className="px-2 py-1 rounded bg-background/70 border text-muted-foreground">
-                    Budget: ${project.budget.toLocaleString()}
+                    Budget: ₹{project.budget.toLocaleString()}
                   </span>
                 )}
                 {project.startDate && project.endDate && (
@@ -262,14 +262,16 @@ export default async function HomeownerDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link href="/homeowner/timeline">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="hover:shadow-md hover:bg-primary hover:text-white transition-all cursor-pointer group">
               <CardContent className="flex items-center space-x-4 pt-6">
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <Clock className="h-6 w-6 text-primary" />
+                <div className="p-2 bg-primary/10 group-hover:bg-primary/20 rounded-full transition-colors">
+                  <Clock className="h-6 w-6 text-primary group-hover:text-white" />
                 </div>
                 <div>
-                  <h3 className="font-medium">View Timeline</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-medium group-hover:text-white">
+                    View Timeline
+                  </h3>
+                  <p className="text-sm text-muted-foreground group-hover:text-white/80">
                     See detailed project progress
                   </p>
                 </div>
@@ -278,14 +280,16 @@ export default async function HomeownerDashboard() {
           </Link>
 
           <Link href="/homeowner/documents">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="hover:shadow-md hover:bg-primary hover:text-white transition-all cursor-pointer group">
               <CardContent className="flex items-center space-x-4 pt-6">
-                <div className="p-2 bg-secondary/10 rounded-full">
-                  <FileText className="h-6 w-6 text-secondary" />
+                <div className="p-2 bg-secondary/10 group-hover:bg-secondary/20 rounded-full transition-colors">
+                  <FileText className="h-6 w-6 text-secondary group-hover:text-white" />
                 </div>
                 <div>
-                  <h3 className="font-medium">View Documents</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-medium group-hover:text-white">
+                    View Documents
+                  </h3>
+                  <p className="text-sm text-muted-foreground group-hover:text-white/80">
                     Access floor plans and photos
                   </p>
                 </div>

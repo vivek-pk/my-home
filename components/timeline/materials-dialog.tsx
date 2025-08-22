@@ -137,7 +137,7 @@ export function MaterialsDialog({
                         </div>
                         <div>
                           <span className="text-sm">
-                            {material.cost ? `$${material.cost}` : 'No cost'}
+                            {material.cost ? `₹${material.cost}` : 'No cost'}
                           </span>
                         </div>
                         <div>

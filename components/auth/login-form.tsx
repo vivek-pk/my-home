@@ -3,7 +3,6 @@
 import type React from 'react';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +20,6 @@ export function LoginForm() {
   const [mobile, setMobile] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,20 +39,21 @@ export function LoginForm() {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Redirect based on user role
+      // Force a page refresh to ensure auth state is updated
+      // and redirect based on user role
       switch (data.user.role) {
         case 'admin':
-          router.push('/admin');
+          window.location.href = '/admin';
           break;
         case 'engineer':
         case 'manager':
-          router.push('/dashboard');
+          window.location.href = '/dashboard';
           break;
         case 'homeowner':
-          router.push('/homeowner');
+          window.location.href = '/homeowner';
           break;
         default:
-          router.push('/');
+          window.location.href = '/';
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
