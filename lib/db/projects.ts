@@ -132,25 +132,196 @@ export async function addProjectUpdate(
 
   const updateWithId = { ...update, _id: new ObjectId().toString() };
 
-  const result = await collection.findOneAndUpdate(
-    {
-      _id: new ObjectId(projectId),
-      'timeline._id': phaseId,
-    } as unknown as Filter<Document>,
-    {
-      $push: { 'timeline.$.updates': updateWithId },
-      $set: { updatedAt: new Date() },
-    } as unknown as import('mongodb').UpdateFilter<Document>,
-    { returnDocument: 'after' }
-  );
+  console.log('addProjectUpdate called with:', {
+    projectId,
+    phaseId,
+    updateData: updateWithId,
+  });
 
-  if (!result) return null;
-  return {
-    ...(result as unknown as Project),
-    _id: (
-      result as unknown as { _id?: { toString(): string } }
-    )._id?.toString(),
-  };
+  try {
+    // Get the current project
+    const project = await collection.findOne({ _id: new ObjectId(projectId) });
+    if (!project) {
+      console.log('Project not found');
+      return null;
+    }
+
+    // Cast to our Project type
+    const projectDoc = project as unknown as Project;
+    console.log('Found project:', projectDoc.name);
+
+    // Find and update the timeline
+    const updatedTimeline = projectDoc.timeline.map((phase) => {
+      if (phase._id === phaseId) {
+        console.log(
+          `Updating phase ${phase.name}, current updates: ${
+            (phase.updates || []).length
+          }`
+        );
+        return {
+          ...phase,
+          updates: [...(phase.updates || []), updateWithId],
+        };
+      }
+      return phase;
+    });
+
+    // Check if the update was actually made
+    const targetPhase = updatedTimeline.find((p) => p._id === phaseId);
+    if (!targetPhase) {
+      console.log('Target phase not found in timeline');
+      return null;
+    }
+
+    console.log(
+      `Target phase ${targetPhase.name} now has ${targetPhase.updates.length} updates`
+    );
+
+    // Replace the entire document
+    const replaceResult = await collection.replaceOne(
+      { _id: new ObjectId(projectId) },
+      {
+        ...projectDoc,
+        timeline: updatedTimeline,
+        updatedAt: new Date(),
+      }
+    );
+
+    console.log('Replace result:', {
+      acknowledged: replaceResult.acknowledged,
+      modifiedCount: replaceResult.modifiedCount,
+      matchedCount: replaceResult.matchedCount,
+    });
+
+    if (replaceResult.modifiedCount > 0) {
+      // Fetch the updated document to verify
+      const updatedDoc = await collection.findOne({
+        _id: new ObjectId(projectId),
+      });
+      if (updatedDoc) {
+        const verifyProject = updatedDoc as unknown as Project;
+        const verifyPhase = verifyProject.timeline.find(
+          (p) => p._id === phaseId
+        );
+        console.log(
+          'Verification - phase now has updates:',
+          verifyPhase?.updates?.length || 0
+        );
+
+        return {
+          ...verifyProject,
+          _id: projectId,
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Database operation error:', error);
+    return null;
+  }
+}
+
+export async function deleteProjectUpdate(
+  projectId: string,
+  phaseId: string,
+  updateId: string
+): Promise<Project | null> {
+  const db = await getDatabase();
+  const collection: Collection<Document> = db.collection('projects');
+
+  console.log('deleteProjectUpdate called with:', {
+    projectId,
+    phaseId,
+    updateId,
+  });
+
+  try {
+    // Get the current project
+    const project = await collection.findOne({ _id: new ObjectId(projectId) });
+    if (!project) {
+      console.log('Project not found');
+      return null;
+    }
+
+    // Cast to our Project type
+    const projectDoc = project as unknown as Project;
+    console.log('Found project:', projectDoc.name);
+
+    // Find and update the timeline by removing the update
+    const updatedTimeline = projectDoc.timeline.map((phase) => {
+      if (phase._id === phaseId) {
+        const currentUpdates = phase.updates || [];
+        const filteredUpdates = currentUpdates.filter(
+          (update) => update._id !== updateId
+        );
+
+        console.log(
+          `Removing update from phase ${phase.name}, before: ${currentUpdates.length}, after: ${filteredUpdates.length}`
+        );
+
+        return {
+          ...phase,
+          updates: filteredUpdates,
+        };
+      }
+      return phase;
+    });
+
+    // Check if the update was actually removed
+    const targetPhase = updatedTimeline.find((p) => p._id === phaseId);
+    if (!targetPhase) {
+      console.log('Target phase not found in timeline');
+      return null;
+    }
+
+    console.log(
+      `Target phase ${targetPhase.name} now has ${targetPhase.updates.length} updates`
+    );
+
+    // Replace the entire document
+    const replaceResult = await collection.replaceOne(
+      { _id: new ObjectId(projectId) },
+      {
+        ...projectDoc,
+        timeline: updatedTimeline,
+        updatedAt: new Date(),
+      }
+    );
+
+    console.log('Delete operation result:', {
+      acknowledged: replaceResult.acknowledged,
+      modifiedCount: replaceResult.modifiedCount,
+      matchedCount: replaceResult.matchedCount,
+    });
+
+    if (replaceResult.modifiedCount > 0) {
+      // Fetch the updated document to verify
+      const updatedDoc = await collection.findOne({
+        _id: new ObjectId(projectId),
+      });
+      if (updatedDoc) {
+        const verifyProject = updatedDoc as unknown as Project;
+        const verifyPhase = verifyProject.timeline.find(
+          (p) => p._id === phaseId
+        );
+        console.log(
+          'Verification - phase now has updates:',
+          verifyPhase?.updates?.length || 0
+        );
+
+        return {
+          ...verifyProject,
+          _id: projectId,
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Delete update database operation error:', error);
+    return null;
+  }
 }
 
 export async function getAllProjects(): Promise<Project[]> {

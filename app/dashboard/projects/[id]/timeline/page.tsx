@@ -1,5 +1,5 @@
 import { ProtectedRoute } from '@/components/auth/protected-route';
-import { TimelineView } from '@/components/timeline/timeline-view';
+import { TimelinePageWrapper } from '@/components/timeline/timeline-page-wrapper';
 import { getProjectById } from '@/lib/db/projects';
 import { getSession } from '@/lib/session';
 import { canAccessProject } from '@/lib/auth';
@@ -28,11 +28,19 @@ export default async function ProjectTimelinePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const session = await getSession();
   const project = await getProjectWithAccess(id);
 
-  if (!project) {
+  if (!project || !session) {
     notFound();
   }
+
+  // Create user object for the component
+  const currentUser = {
+    id: session.id,
+    role: session.role,
+    name: session.name,
+  };
 
   return (
     <ProtectedRoute allowedRoles={['engineer', 'manager']}>
@@ -66,7 +74,11 @@ export default async function ProjectTimelinePage({
 
         <main className="container mx-auto px-4 py-6">
           <div className="rounded border p-2 sm:p-4">
-            <TimelineView project={project} canEdit={true} />
+            <TimelinePageWrapper
+              initialProject={project}
+              canEdit={true}
+              currentUser={currentUser}
+            />
           </div>
         </main>
       </div>

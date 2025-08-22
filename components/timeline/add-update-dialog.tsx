@@ -21,65 +21,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { FileUpload } from '@/components/upload/file-upload';
 import { Loader2 } from 'lucide-react';
 import type { ProjectPhase } from '@/lib/models/Project';
+import type { UploadedFile } from '@/components/upload/file-upload';
 
 interface AddUpdateDialogProps {
-  open: boolean;
+  isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
   phase: ProjectPhase;
-  onSuccess: () => void;
+  onUpdateAdded: () => void;
 }
 
 export function AddUpdateDialog({
-  open,
+  isOpen,
   onOpenChange,
   projectId,
   phase,
-  onSuccess,
+  onUpdateAdded,
 }: AddUpdateDialogProps) {
   const [message, setMessage] = useState('');
   const [phaseStatus, setPhaseStatus] = useState(phase.status);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!message.trim()) return;
+
     setIsLoading(true);
     setError('');
 
     try {
-      const trimmed = message.trim();
       const response = await fetch(`/api/projects/${projectId}/updates`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          phaseId: phase._id,
-          phaseName: phase.name,
-          message: trimmed,
-          phaseStatus,
+          message: message.trim(),
+          phaseId: phase._id || '',
+          status: phaseStatus,
+          images: uploadedFiles, // Send the already uploaded files
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add update');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add update');
       }
 
       setMessage('');
-      setPhaseStatus(phaseStatus);
-      onSuccess();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setUploadedFiles([]);
+      setPhaseStatus(phase.status);
+      onOpenChange(false);
+      onUpdateAdded();
+    } catch (error) {
+      console.error('Error adding update:', error);
+      setError(error instanceof Error ? error.message : 'Failed to add update');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Progress Update</DialogTitle>
@@ -117,6 +125,15 @@ export function AddUpdateDialog({
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe the progress, issues, or completion status... (optional if just changing status)"
               rows={4}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Images (optional)</Label>
+            <FileUpload
+              onUpload={setUploadedFiles}
+              maxFiles={5}
+              accept="image"
             />
           </div>
 

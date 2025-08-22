@@ -1,4 +1,5 @@
 import { HomeownerLayout } from '@/components/homeowner/homeowner-layout';
+import { UpdatesHistory } from '@/components/timeline/updates-history';
 import {
   Card,
   CardContent,
@@ -10,18 +11,13 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { getSession } from '@/lib/session';
 import { getProjectsByUserId } from '@/lib/db/projects';
-import type {
-  Project,
-  ProjectPhase,
-  ProjectUpdate,
-} from '@/lib/models/Project';
+import type { Project, ProjectPhase } from '@/lib/models/Project';
 import { getUserById } from '@/lib/db/users';
 import {
   Building2,
   Calendar,
   Clock,
   CheckCircle,
-  AlertCircle,
   FileText,
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
@@ -36,7 +32,15 @@ async function getHomeownerData() {
     getProjectsByUserId(session.id, session.role),
   ]);
 
-  return { user, projects };
+  return {
+    user,
+    projects,
+    currentUser: {
+      id: session.id,
+      role: session.role,
+      name: session.name,
+    },
+  };
 }
 
 function getProjectStatus(project: Project) {
@@ -106,16 +110,6 @@ export default async function HomeownerDashboard() {
   const project = data.projects[0]; // Assuming homeowner has one project
   const projectStatus = getProjectStatus(project);
   const nextMilestone = getNextMilestone(project);
-  const recentUpdates = project.timeline
-    .flatMap((phase: ProjectPhase) =>
-      Array.isArray(phase.updates) ? phase.updates : []
-    )
-    .filter((u: ProjectUpdate) => !!u && !!u.createdAt)
-    .sort(
-      (a: ProjectUpdate, b: ProjectUpdate) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    .slice(0, 5);
 
   return (
     <HomeownerLayout>
@@ -258,50 +252,12 @@ export default async function HomeownerDashboard() {
         )}
 
         {/* Recent Updates */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Recent Updates</CardTitle>
-              <Link href="/homeowner/timeline">
-                <Badge
-                  variant="outline"
-                  className="cursor-pointer hover:bg-accent"
-                >
-                  View All
-                </Badge>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentUpdates.length > 0 ? (
-              <div className="space-y-4">
-                {recentUpdates.map((update: ProjectUpdate, index: number) => (
-                  <div
-                    key={index}
-                    className="border-l-2 border-primary/20 pl-4 space-y-1"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm">
-                        {update.userName}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(update.createdAt), 'MMM d, h:mm a')}
-                      </span>
-                    </div>
-                    <p className="text-sm">{update.message}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  No recent updates available
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <UpdatesHistory
+          projectId={project._id!}
+          maxUpdates={5}
+          showPhaseInfo={true}
+          currentUser={data.currentUser}
+        />
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

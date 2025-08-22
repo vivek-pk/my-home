@@ -280,11 +280,11 @@ function TimelineView({
       {selectedPhase && (
         <>
           <AddUpdateDialog
-            open={showUpdateDialog}
+            isOpen={showUpdateDialog}
             onOpenChange={setShowUpdateDialog}
             projectId={project._id!}
             phase={selectedPhase}
-            onSuccess={() => {
+            onUpdateAdded={() => {
               setShowUpdateDialog(false);
               onUpdate?.();
             }}

@@ -1,4 +1,5 @@
 import { ProtectedRoute } from '@/components/auth/protected-route';
+import { UpdatesHistory } from '@/components/timeline/updates-history';
 import { getProjectById } from '@/lib/db/projects';
 import { getSession } from '@/lib/session';
 import { canAccessProject } from '@/lib/auth';
@@ -89,56 +90,76 @@ export default async function ProjectDetailsPage({
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-6 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Details</CardTitle>
-              <CardDescription>{project.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  Created {format(new Date(project.createdAt), 'MMM d, yyyy')}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>
-                  {completed} of {total} phases completed
-                </span>
-              </div>
-              <div>
-                <Badge>{project.status}</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {project.timeline.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Phases</CardTitle>
-                <CardDescription>Key stages and current status</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-2">
-                {project.timeline.map((p) => (
-                  <div
-                    key={p._id ?? p.name}
-                    className="flex items-center justify-between border rounded p-3 gap-4"
-                  >
-                    <div>
-                      <div className="font-medium">{p.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(p.startDate), 'MMM d')} –{' '}
-                        {format(new Date(p.endDate), 'MMM d, yyyy')}
-                      </div>
-                    </div>
-                    <Badge variant="outline">{p.status}</Badge>
+        <main className="container mx-auto px-4 py-6">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Details</CardTitle>
+                  <CardDescription>{project.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      Created{' '}
+                      {format(new Date(project.createdAt), 'MMM d, yyyy')}
+                    </span>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      {completed} of {total} phases completed
+                    </span>
+                  </div>
+                  <div>
+                    <Badge>{project.status}</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {project.timeline.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Phases</CardTitle>
+                    <CardDescription>
+                      Key stages and current status
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-3 sm:grid-cols-2">
+                    {project.timeline.map((p) => (
+                      <div
+                        key={p._id ?? p.name}
+                        className="flex items-center justify-between border rounded p-3 gap-4"
+                      >
+                        <div>
+                          <div className="font-medium">{p.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(p.startDate), 'MMM d')} –{' '}
+                            {format(new Date(p.endDate), 'MMM d, yyyy')}
+                          </div>
+                        </div>
+                        <Badge variant="outline">{p.status}</Badge>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              <UpdatesHistory
+                projectId={project._id!}
+                maxUpdates={5}
+                showPhaseInfo={true}
+                currentUser={{
+                  id: session.id,
+                  role: session.role,
+                  name: session.name,
+                }}
+              />
+            </div>
+          </div>
         </main>
       </div>
     </ProtectedRoute>

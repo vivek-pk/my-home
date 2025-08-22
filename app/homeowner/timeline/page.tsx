@@ -1,5 +1,5 @@
 import { HomeownerLayout } from '@/components/homeowner/homeowner-layout';
-import { TimelineView } from '@/components/timeline/timeline-view';
+import { TimelinePageWrapper } from '@/components/timeline/timeline-page-wrapper';
 import { GanttChart } from '@/components/timeline/gantt-chart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getSession } from '@/lib/session';
@@ -46,7 +46,7 @@ export default async function HomeownerTimelinePage() {
           </TabsList>
 
           <TabsContent value="timeline" className="space-y-6">
-            <TimelineView project={project} canEdit={false} />
+            <TimelinePageWrapper initialProject={project} canEdit={false} />
           </TabsContent>
 
           <TabsContent value="gantt" className="space-y-6">
